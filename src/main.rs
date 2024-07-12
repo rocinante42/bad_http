@@ -11,6 +11,7 @@ fn handle_connection(mut stream: TcpStream) {
     let request = String::from_utf8_lossy(&buffer[..]);
     let lines = request.lines().map(|line| line).collect::<Vec<&str>>();
     let request_tokens: Vec<&str> = lines[0].split(" ").collect();
+    let user_agent: Vec<&str> = lines[2].split(" ").collect();
     let mut response = "HTTP/1.1 400 Bad Request\r\n\r\n".to_string();
 
     match request_tokens[0] {
@@ -25,22 +26,20 @@ fn handle_connection(mut stream: TcpStream) {
                     len, message
                 );
                 println!("{}", response);
+            } else if request_tokens[1].starts_with("/user-agent") {
+                let message = user_agent[1];
+                let len = message.len();
+                response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
+                    len, message
+                )
             } else {
                 response = "HTTP/1.1 404 Not Found\r\n\r\n".to_string();
             }
         }
         _ => {}
     }
-
-    // let get = b"GET / HTTP/1.1\r\n";
-
-    // let response = if buffer.starts_with(get) {
-    //     "HTTP/1.1 200 OK\r\n\r\n"
-    // } else {
-    //     "HTTP/1.1 404 Not Found\r\n\r\n"
-    // };
-
-    stream.write(response.as_str().as_bytes()).unwrap();
+    stream.write(response.as_bytes()).unwrap();
     stream.flush().unwrap();
 }
 
