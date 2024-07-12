@@ -2,6 +2,7 @@
 use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::net::TcpStream;
+use std::{env, fs};
 
 fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
@@ -33,6 +34,21 @@ fn handle_connection(mut stream: TcpStream) {
                     "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}",
                     len, message
                 )
+            } else if request_tokens[1].starts_with("/files/") {
+                let filename = request_tokens[1].replace("/files/", "");
+                let env_args: Vec<String> = env::args().collect();
+                let mut dir = env_args[2].clone();
+                dir.push_str(&filename);
+                let file = fs::read(dir);
+
+                match file {
+                    Ok(fc) => {
+                        response =  format!("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n", fc.len(), String::from_utf8(fc).expect("file content"));
+                    }
+                    Err(_) => {
+                        response = "HTTP/1.1 404 Not Found\r\n\r\n".to_string();
+                    }
+                }
             } else {
                 response = "HTTP/1.1 404 Not Found\r\n\r\n".to_string();
             }
