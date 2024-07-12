@@ -7,7 +7,7 @@ use std::{env, fs};
 fn handle_connection(mut stream: TcpStream) {
     let mut buffer = [0; 1024];
     stream.read(&mut buffer).expect("Error writing to buffer");
-    println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
+    // println!("Request: {}", String::from_utf8_lossy(&buffer[..]));
 
     let request = String::from_utf8_lossy(&buffer[..]);
     let lines = request.lines().map(|line| line).collect::<Vec<&str>>();
@@ -54,12 +54,12 @@ fn handle_connection(mut stream: TcpStream) {
             }
         }
         "POST" => {
-            if request_tokens[1].starts_with("/files/") {
+            if request_tokens[1].starts_with("/files/") && lines.len() >= 8 {
                 let filename = request_tokens[1].replace("/files/", "");
                 let env_args: Vec<String> = env::args().collect();
                 let mut dir = env_args[2].clone();
                 dir.push_str(&filename);
-                let file_content = lines[5];
+                let file_content = lines[7];
                 let result = fs::write(dir, file_content);
                 match result {
                     Ok(_) => {
@@ -67,6 +67,10 @@ fn handle_connection(mut stream: TcpStream) {
                     }
                     Err(_) => {}
                 }
+            } else {
+                let body = lines[7];
+                println!("{}", body);
+                //response =  format!("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n", fc.len(), String::from_utf8(fc).expect("file content"));
             }
         }
         _ => {}
