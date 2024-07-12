@@ -54,12 +54,12 @@ fn handle_connection(mut stream: TcpStream) {
             }
         }
         "POST" => {
-            if request_tokens[1].starts_with("/files/") && lines.len() >= 8 {
+            if request_tokens[1].starts_with("/files/") {
                 let filename = request_tokens[1].replace("/files/", "");
                 let env_args: Vec<String> = env::args().collect();
                 let mut dir = env_args[2].clone();
                 dir.push_str(&filename);
-                let file_content = lines[7];
+                let file_content = lines[lines.len() - 1];
                 let result = fs::write(dir, file_content);
                 match result {
                     Ok(_) => {
