@@ -60,7 +60,6 @@ fn handle_connection(mut stream: TcpStream) {
                 let mut dir = env_args[2].clone();
                 dir.push_str(&filename);
                 let file_content = lines[6];
-
                 let result = fs::write(dir, file_content);
                 match result {
                     Ok(_) => {
