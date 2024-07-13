@@ -59,7 +59,7 @@ fn handle_connection(mut stream: TcpStream) {
                 let env_args: Vec<String> = env::args().collect();
                 let mut dir = env_args[2].clone();
                 dir.push_str(&filename);
-                let file_content = lines[lines.len() - 1].as_bytes();
+                let file_content = lines[lines.len() - 1].trim_end_matches('\0');
                 let result = fs::write(dir, file_content);
                 match result {
                     Ok(_) => {
